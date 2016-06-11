@@ -50,7 +50,9 @@ class Widget(QWidget):
         
         self._relativemode = QCheckBox()
         signals.append(self._relativemode.clicked)
-
+        
+        self._notelength = 0
+        
         self._labeldamper = QLabel()
         self._damper = QComboBox()
         
@@ -118,7 +120,10 @@ class Widget(QWidget):
     
     def relativemode(self):
         return self._relativemode.isChecked()
-
+    
+    def notelength(self):
+        return self._notelength
+    
     def startcapturing(self):
         self._midiin.capture()
         ac = self.parentWidget().actionCollection
@@ -202,3 +207,9 @@ class Widget(QWidget):
         self._labeldamper.setText(_("Damper pedal"))
         self._labelsostenuto.setText(_("Sostenuto pedal"))
         self._labelsoft.setText(_("Soft pedal"))
+    
+    def keyPressEvent(self, ev):
+        if ev.key() == Qt.Key_Q:
+            self._notelength += 1/4
+        if ev.key() == Qt.Key_W:
+            self._notelength += 1/8

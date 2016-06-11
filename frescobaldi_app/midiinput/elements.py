@@ -7,6 +7,17 @@ from PyQt5.QtWidgets import QApplication
 
 import ly.pitch
 
+class NoteLength:
+    # todo: extend this function
+    # todo: maybe move this function to python-ly/ly/rhythm.py
+    def notelength2str(notelength):
+        lengths = [1/8, 2/8, 3/8, 4/8, 6/8, 7/8, 1]
+        strings = ['8', '4', '4.', '2', '2.','2..','1']
+        try:
+            i = lengths.index(notelength)
+            return strings[i]
+        except ValueError:
+            return ''
 
 class Note:
     LastPitch = ly.pitch.Pitch()
@@ -19,7 +30,7 @@ class Note:
         self._octave -= 4
         self._pitch = ly.pitch.Pitch(notemapping[self._note][0], notemapping[self._note][1], self._octave)
     
-    def output(self, relativemode=False, language='nederlands'):
+    def output(self, relativemode=False, notelength=0, language='nederlands'):
         if relativemode:
             # makeRelative changes pitch, so we need temporary variables for note and octave
             lastnote = self._pitch.note
@@ -27,8 +38,9 @@ class Note:
             self._pitch.makeRelative(Note.LastPitch)
             Note.LastPitch.note = lastnote
             Note.LastPitch.octave = lastoctave
+        nl = NoteLength.notelength2str(notelength)
         # also octavecheck if Shift is held
-        return self._pitch.output(language) +   (('='+ly.pitch.octaveToString(self._octave)) if QApplication.keyboardModifiers() & Qt.SHIFT else '')
+        return self._pitch.output(language) +   (('='+ly.pitch.octaveToString(self._octave)) if QApplication.keyboardModifiers() & Qt.SHIFT else '') + nl
     
     def midinote(self):
         return self._midinote
@@ -41,9 +53,9 @@ class Chord(object):
     def add(self, note):
         self._notes.append(note)
     
-    def output(self, relativemode=False, language='nederlands'):
+    def output(self, relativemode=False, notelength=0, language='nederlands'):
         if len(self._notes) == 1:    # only one note, no chord
-            return self._notes[0].output(relativemode, language)
+            return self._notes[0].output(relativemode, notelength, language)
         else:    # so we have a chord, print <chord>
             sortednotes = sorted(self._notes, key=lambda note: note.midinote())
             chord = ''
@@ -54,7 +66,8 @@ class Chord(object):
                 chord += n.output(relativemode, language) + ' '
             Note.LastPitch.note = lastnote
             Note.LastPitch.octave = lastoctave
-            return '<' + chord[:-1] + '>'    # strip last space
+            nl = NoteLength.notelength2str(notelength)
+            return '<' + chord[:-1] + '>' + nl    # strip last space
 
 
 class NoteMappings:
